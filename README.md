@@ -42,11 +42,28 @@ cargo build --release
 
 1. Update the version in `Cargo.toml`
 2. Commit the change
-3. Run the release script:
+3. Create a draft release (this triggers bottle building):
 
-```bash
-./scripts/release.sh
-```
+   ```bash
+   ./scripts/release-draft.sh
+   ```
+
+4. Wait for GitHub Actions to build bottles for all platforms (~5-10 minutes)
+
+   - Check progress: https://github.com/notjosh/horse/actions/workflows/build-bottles.yml
+
+5. Publish the release and update the Homebrew formula:
+
+   ```bash
+   ./scripts/release-publish.sh
+   ```
+
+The release process automatically:
+
+- Builds bottles for multiple macOS versions
+- Uploads bottles to the GitHub release
+- Updates the Homebrew formula with bottle information
+- Publishes the release
 
 ## Credits
 
