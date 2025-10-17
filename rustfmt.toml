@@ -1,0 +1,10 @@
+# Rust formatting configuration
+# See https://rust-lang.github.io/rustfmt/ for all options
+
+# Use stable features only
+edition = "2024"
+
+# Formatting options
+max_width = 100
+tab_spaces = 4
+use_small_heuristics = "Default"
