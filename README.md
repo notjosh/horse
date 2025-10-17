@@ -14,14 +14,14 @@ A simple CLI tool that displays an animated ASCII art carousel of horses in your
 ### Via Homebrew
 
 ```bash
-brew tap notjosh/manhorse
+brew tap notjosh/tap
 brew install horse
 ```
 
 Or in one line:
 
 ```bash
-brew install notjosh/manhorse/horse
+brew install notjosh/tap/horse
 ```
 
 Then run:

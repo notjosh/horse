@@ -1,0 +1,27 @@
+name: Update Homebrew Formula
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  homebrew:
+    name: Bump Homebrew formula
+    # Skip this job in case of git pushes to prerelease tags
+    if: ${{ github.event_name != 'push' || !contains(github.ref, '-') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Extract tag name
+        id: extract-tag-name
+        # Strip a string prefix from the git tag name:
+        run: |
+          echo "tag-name=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - uses: mislav/bump-homebrew-formula-action@v3
+        with:
+          homebrew-tap: notjosh/homebrew-tap
+          base-branch: main
+        env:
+          COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
