@@ -111,9 +111,9 @@ echo
 
 # Show what will be done
 info "The following actions will be performed:"
-info "  1. Create git tag: ${TAG}"
-info "  2. Push tag to origin"
-info "  3. Create GitHub release with auto-generated notes"
+info "  1. Create GitHub release"
+info "  2. Create and push git tag: ${TAG}"
+info "  3. Add auto-generated release notes"
 echo
 
 # Ask for confirmation
@@ -126,20 +126,29 @@ fi
 
 echo
 
-# Create the tag
-info "🏷️  Creating tag ${TAG}..."
-git tag "${TAG}"
-success "✓ Tag created locally"
-
-# Push the tag
-info "📤 Pushing tag to origin..."
-git push origin "${TAG}"
-success "✓ Tag pushed to origin"
-
-# Create GitHub release
+# Create GitHub release (this will also create and push the tag atomically)
 info "🚀 Creating GitHub release..."
-gh release create "${TAG}" --generate-notes
-success "✓ GitHub release created"
+gh release create "${TAG}" \
+  --generate-notes \
+  --notes '```
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⡴⠶⠾⠿⣷⡶⠀⠀⣾⣿⣿⡆⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡾⠋⠀⠀⢀⣴⠟⠀⠀⠀⠻⣿⡿⠃⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⡇⠀⠰⣶⣿⡃⠀⠀⣠⣾⣦⣤⣤⣴⣦⣄⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⡇⢀⣴⠟⠻⣿⣦⣼⡿⢻⣿⣿⣿⣿⠻⣿⣧⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣷⡾⠃⠀⠀⠈⠙⠋⠀⣿⣿⣿⣿⣿⠀⠈⢿⣇⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⣀⣀⣠⣤⣤⣄⠸⣿⣿⣿⣿⣿⠀⠀⠘⠿⠀⠀
+⠀⠀⠀⠀⢀⡀⠀⣠⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣦⠙⢿⣿⣿⡟⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⣿⠁⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⣉⡉⠁⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢀⡏⢠⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠃⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⢠⣾⠃⣸⣿⣿⣿⡿⠛⠛⠻⠿⠛⠛⠉⠉⣿⣿⠃⠐⢿⣷⠀⠀⠀⠀⠀⠀
+⠀⠀⠈⠉⢀⣿⡿⠟⠋⢀⣴⡀⠀⠀⠀⠀⠀⠀⣿⡿⠀⣤⣿⠟⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⣼⣿⠃⠀⠀⠀⠻⣷⡀⠀⠀⠀⠀⣸⣿⠃⠘⠛⠁⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⣿⣇⠀⠀⠀⠀⠀⠹⣷⡀⠀⠀⠀⢿⣯⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠈⠉⠀⠀⠀⠀⠀⠀⠈⠉⠀⠀⠀⠀⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+```'
+
+success "✓ GitHub release created with tag ${TAG}"
 
 echo
 success "🎉 Release ${TAG} completed successfully!"
@@ -150,4 +159,4 @@ info "The GitHub Actions workflow will now:"
 info "  • Update Formula/horse.rb"
 info "  • Commit and push the formula"
 info ""
-info "Check the status at: https://github.com/notjosh/manhorse/actions"
+info "Check the status at: ${GREEN}https://github.com/notjosh/manhorse/actions/workflows/release.yml${NC}"
