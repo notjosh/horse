@@ -76,23 +76,23 @@ if [ -z "$BOTTLES" ]; then
     exit 1
 fi
 
-# Parse bottle info: filename -> arch and os
-declare -A BOTTLE_INFO
+# Validate and list bottles
+BOTTLE_COUNT=0
 while IFS= read -r bottle; do
     # Extract arch_os from filename: horse-VERSION.ARCH_OS.bottle.tar.gz
     if [[ "$bottle" =~ horse-${VERSION}\.([^.]+)\.bottle\.tar\.gz ]]; then
         ARCH_OS="${BASH_REMATCH[1]}"
-        BOTTLE_INFO["$bottle"]="$ARCH_OS"
         info "  Found: ${bottle} (${ARCH_OS})"
+        BOTTLE_COUNT=$((BOTTLE_COUNT + 1))
     fi
 done <<< "$BOTTLES"
 
-if [ ${#BOTTLE_INFO[@]} -eq 0 ]; then
+if [ $BOTTLE_COUNT -eq 0 ]; then
     error "No valid bottle files found"
     exit 1
 fi
 
-success "✓ Found ${#BOTTLE_INFO[@]} bottle(s)"
+success "✓ Found ${BOTTLE_COUNT} bottle(s)"
 echo
 
 # Download bottles and calculate SHA256s
@@ -100,16 +100,23 @@ info "📥 Downloading bottles and calculating SHA256s..."
 TEMP_DIR=$(mktemp -d)
 cd "${TEMP_DIR}"
 
-declare -A BOTTLE_SHAS
+# Download all bottles and store info in temporary file
+BOTTLE_DATA_FILE="${TEMP_DIR}/bottle_data.txt"
+> "$BOTTLE_DATA_FILE"
 
-for bottle in "${!BOTTLE_INFO[@]}"; do
-    info "  Downloading ${bottle}..."
-    gh release download "${TAG}" --pattern "${bottle}" --repo notjosh/horse
-    
-    SHA256=$(shasum -a 256 "${bottle}" | cut -d' ' -f1)
-    BOTTLE_SHAS["${bottle}"]="${SHA256}"
-    info "    SHA256: ${SHA256}"
-done
+while IFS= read -r bottle; do
+    if [[ "$bottle" =~ horse-${VERSION}\.([^.]+)\.bottle\.tar\.gz ]]; then
+        ARCH_OS="${BASH_REMATCH[1]}"
+        info "  Downloading ${bottle}..."
+        gh release download "${TAG}" --pattern "${bottle}" --repo notjosh/horse
+        
+        SHA256=$(shasum -a 256 "${bottle}" | cut -d' ' -f1)
+        info "    SHA256: ${SHA256}"
+        
+        # Store: arch_os|sha256
+        echo "${ARCH_OS}|${SHA256}" >> "$BOTTLE_DATA_FILE"
+    fi
+done <<< "$BOTTLES"
 
 cd - > /dev/null
 
@@ -118,6 +125,7 @@ echo
 
 # Update the formula in homebrew-tap
 info "📝 Updating Homebrew formula..."
+ORIGINAL_DIR=$(pwd)
 TAP_DIR=$(mktemp -d)
 cd "${TAP_DIR}"
 
@@ -128,14 +136,12 @@ cd homebrew-tap
 # Get source tarball SHA256
 SOURCE_SHA256=$(curl -sL "https://github.com/notjosh/horse/archive/refs/tags/${TAG}.tar.gz" | shasum -a 256 | cut -d' ' -f1)
 
-# Generate bottle block lines
+# Generate bottle block lines from stored data
 BOTTLE_LINES=""
-for bottle in "${!BOTTLE_INFO[@]}"; do
-    ARCH_OS="${BOTTLE_INFO[$bottle]}"
-    SHA="${BOTTLE_SHAS[$bottle]}"
+while IFS='|' read -r arch_os sha256; do
     # Format: sha256 cellar: :any_skip_relocation, arm64_sonoma: "sha256here"
-    BOTTLE_LINES="${BOTTLE_LINES}    sha256 cellar: :any_skip_relocation, ${ARCH_OS}: \"${SHA}\"\n"
-done
+    BOTTLE_LINES="${BOTTLE_LINES}    sha256 cellar: :any_skip_relocation, ${arch_os}: \"${sha256}\"\n"
+done < "${TEMP_DIR}/bottle_data.txt"
 
 # Create the formula with dynamically generated bottle blocks
 cat > Formula/horse.rb << EOF
@@ -144,11 +150,11 @@ class Horse < Formula
   homepage "https://github.com/notjosh/horse"
   url "https://github.com/notjosh/horse/archive/refs/tags/${TAG}.tar.gz"
   sha256 "${SOURCE_SHA256}"
-  license "MIT"
 
   bottle do
     root_url "https://github.com/notjosh/horse/releases/download/${TAG}"
-$(echo -e "${BOTTLE_LINES}")  end
+$(echo -e "${BOTTLE_LINES}")
+  end
 
   depends_on "rust" => :build
 
@@ -168,7 +174,8 @@ git add Formula/horse.rb
 git commit -m "horse ${VERSION}"
 git push origin main
 
-cd - > /dev/null
+# Return to original directory before cleanup
+cd "${ORIGINAL_DIR}"
 rm -rf "${TAP_DIR}"
 rm -rf "${TEMP_DIR}"
 
