@@ -19,11 +19,13 @@ brew install horse
 ```
 
 Or in one line:
+
 ```bash
 brew install notjosh/manhorse/horse
 ```
 
 Then run:
+
 ```bash
 horse           # Run the animation
 man horse       # View the manpage with centaur art
@@ -38,21 +40,13 @@ cargo build --release
 
 ## Making a Release (for maintainers)
 
-Simply create a tag and release:
+1. Update the version in `Cargo.toml`
+2. Commit the change
+3. Run the release script:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
-gh release create v0.1.0 --generate-notes
+./scripts/release.sh
 ```
-
-The GitHub Actions workflow will automatically:
-1. Download the release tarball
-2. Calculate its SHA256
-3. Generate/update `Formula/horse.rb`
-4. Commit and push the formula
-
-Users can then install with: `brew install notjosh/manhorse/horse`
 
 ## Credits
 
