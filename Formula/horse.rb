@@ -2,7 +2,7 @@ class Horse < Formula
   desc "Display an animated ASCII art carousel of horses"
   homepage "https://github.com/notjosh/manhorse"
   url "https://github.com/notjosh/manhorse/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "df81cd4db1c41b83f4d88c8b13e880fa93f744968ac881445524c3b0b2510244"
+  sha256 "b0ae58ce0e0cbcf1293e6f1bffda6c0c3ec02a2334e61b0c3d7887b7211339b9"
   license "MIT"
 
   depends_on "rust" => :build
