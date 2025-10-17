@@ -1,6 +1,7 @@
 mod artwork;
 
 use artwork::HORSES;
+use clap::Parser;
 use crossterm::{
     ExecutableCommand,
     cursor::{Hide, Show},
@@ -11,6 +12,12 @@ use rand::Rng;
 use std::io::{Write, stdout};
 use std::thread;
 use std::time::Duration;
+
+#[derive(Parser)]
+#[command(name = "horse")]
+#[command(version = env!("CARGO_PKG_VERSION"))]
+#[command(about = "Displays animated horses scrolling across your terminal", long_about = None)]
+struct Cli {}
 
 // Frame data structure
 struct Frame {
@@ -70,6 +77,9 @@ fn random_horse(last_content: Option<&'static str>) -> &'static str {
 }
 
 fn main() {
+    // Parse command-line arguments (handles --version automatically)
+    let _cli = Cli::parse();
+
     let mut stdout = stdout();
 
     // Enter alternate screen and hide cursor
