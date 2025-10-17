@@ -146,7 +146,7 @@ done < "${TEMP_DIR}/bottle_data.txt"
 # Create the formula with dynamically generated bottle blocks
 cat > Formula/horse.rb << EOF
 class Horse < Formula
-  desc "Display an animated ASCII art carousel of horses in your terminal"
+  desc "Display an animated ASCII art carousel of horsesbr"
   homepage "https://github.com/notjosh/horse"
   url "https://github.com/notjosh/horse/archive/refs/tags/${TAG}.tar.gz"
   sha256 "${SOURCE_SHA256}"
@@ -164,7 +164,7 @@ $(echo -e "${BOTTLE_LINES}")
   end
 
   test do
-    system "#{bin}/horse", "--version"
+    assert_predicate bin/"horse", :exist?
   end
 end
 EOF

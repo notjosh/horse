@@ -70,11 +70,15 @@ jobs:
 
           # Create Cellar directory structure
           BOTTLE_DIR="bottle_tmp"
-          CELLAR_PATH="${BOTTLE_DIR}/horse/${VERSION}/bin"
-          mkdir -p "${CELLAR_PATH}"
+          CELLAR_PATH="${BOTTLE_DIR}/horse/${VERSION}"
+          mkdir -p "${CELLAR_PATH}/bin"
+          mkdir -p "${CELLAR_PATH}/share/man/man1"
 
           # Copy binary
-          cp target/release/horse "${CELLAR_PATH}/"
+          cp target/release/horse "${CELLAR_PATH}/bin/"
+
+          # Copy man page
+          cp man/horse.1 "${CELLAR_PATH}/share/man/man1/"
 
           # Create tarball
           cd "${BOTTLE_DIR}"
