@@ -111,8 +111,8 @@ echo
 
 # Show what will be done
 info "The following actions will be performed:"
-info "  1. Create DRAFT GitHub release"
-info "  2. Create and push git tag: ${TAG}"
+info "  1. Create and push git tag: ${TAG}"
+info "  2. Create DRAFT GitHub release"
 info "  3. Trigger bottle building via GitHub Actions"
 echo
 
@@ -126,7 +126,15 @@ fi
 
 echo
 
-# Create GitHub DRAFT release (this will also create and push the tag atomically)
+# Step 1: Create and push the git tag
+info "🏷️  Creating and pushing git tag..."
+git tag -a "${TAG}" -m "Release ${VERSION}"
+git push origin "${TAG}"
+
+success "✓ Tag ${TAG} created and pushed"
+echo
+
+# Step 2: Create GitHub DRAFT release using the existing tag
 info "🚀 Creating draft GitHub release..."
 gh release create "${TAG}" \
   --draft \
@@ -149,7 +157,7 @@ gh release create "${TAG}" \
 ⠀⠀⠀⠀⠈⠉⠀⠀⠀⠀⠀⠀⠈⠉⠀⠀⠀⠀⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ```'
 
-success "✓ Draft GitHub release created with tag ${TAG}"
+success "✓ Draft GitHub release created"
 
 echo
 success "🎉 Draft release ${TAG} created successfully!"

@@ -1,27 +1,26 @@
 name: Build Homebrew Bottles
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - "v*"
 
 jobs:
   build-bottles:
     name: Build bottle for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
     strategy:
       matrix:
         os: [macos-14, macos-15, macos-26]
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Extract version from tag
         id: version
@@ -52,6 +51,9 @@ jobs:
               ;;
             macos-15)
               BOTTLE_OS="sequoia"
+              ;;
+            macos-26)
+              BOTTLE_OS="tahoe"
               ;;
           esac
 
@@ -92,6 +94,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release upload ${{ github.event.release.tag_name }} \
+          gh release upload ${{ github.ref_name }} \
             ${{ steps.bottle.outputs.name }} \
+            --repo ${{ github.repository }} \
             --clobber
