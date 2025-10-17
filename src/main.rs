@@ -1,6 +1,6 @@
 mod artwork;
 
-use artwork::MANHORSES;
+use artwork::HORSES;
 use crossterm::{
     ExecutableCommand,
     cursor::{Hide, Show},
@@ -54,17 +54,17 @@ const SPACING: i32 = 10; // Space between frames
 const SCROLL_SPEED: i32 = 1; // Pixels per tick
 const FPS: u64 = 30; // Frames per second
 
-// Get a random manhorse that's different from the last one
-fn random_manhorse(last_content: Option<&'static str>) -> &'static str {
+// Get a random horse that's different from the last one
+fn random_horse(last_content: Option<&'static str>) -> &'static str {
     let mut rng = rand::rng();
 
-    if MANHORSES.len() == 1 {
-        return MANHORSES[0];
+    if HORSES.len() == 1 {
+        return HORSES[0];
     }
 
-    let mut next = MANHORSES[rng.random_range(0..MANHORSES.len())];
+    let mut next = HORSES[rng.random_range(0..HORSES.len())];
     while Some(next) == last_content {
-        next = MANHORSES[rng.random_range(0..MANHORSES.len())];
+        next = HORSES[rng.random_range(0..HORSES.len())];
     }
     next
 }
@@ -99,7 +99,7 @@ fn main() {
         };
 
         if needs_new_frame {
-            let new_content = random_manhorse(last_frame_content);
+            let new_content = random_horse(last_frame_content);
             let new_x = frames
                 .last()
                 .map(|f| f.right_edge() + SPACING)
