@@ -5,8 +5,9 @@ use clap::Parser;
 use crossterm::{
     ExecutableCommand,
     cursor::{Hide, Show},
+    event::{poll, read, Event, KeyCode},
     execute,
-    terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, size},
+    terminal::{self, Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, size},
 };
 use rand::Rng;
 use std::io::{Write, stdout};
@@ -61,6 +62,14 @@ const SPACING: i32 = 10; // Space between frames
 const SCROLL_SPEED: i32 = 1; // Pixels per tick
 const FPS: u64 = 30; // Frames per second
 
+// Cleanup function to restore terminal state and exit
+fn cleanup_and_exit() {
+    let mut stdout = std::io::stdout();
+    let _ = terminal::disable_raw_mode();
+    let _ = execute!(stdout, Show, LeaveAlternateScreen);
+    std::process::exit(0);
+}
+
 // Get a random horse that's different from the last one
 fn random_horse(last_content: Option<&'static str>) -> &'static str {
     let mut rng = rand::rng();
@@ -82,16 +91,36 @@ fn main() {
 
     let mut stdout = stdout();
 
+    // Enable raw mode for keyboard input
+    terminal::enable_raw_mode().expect("Failed to enable raw mode");
+
     // Enter alternate screen and hide cursor
     let _ = execute!(stdout, EnterAlternateScreen, Hide);
 
     // Set up Ctrl+C handler to restore cursor and leave alternate screen
     ctrlc::set_handler(|| {
-        let mut stdout = std::io::stdout();
-        let _ = execute!(stdout, Show, LeaveAlternateScreen);
-        std::process::exit(0);
+        cleanup_and_exit();
     })
     .expect("Error setting Ctrl+C handler");
+
+    // Spawn background thread to monitor for 'q', 'Esc', and Ctrl+C key presses
+    std::thread::spawn(|| {
+        loop {
+            if let Ok(true) = poll(Duration::from_millis(100)) {
+                if let Ok(Event::Key(key)) = read() {
+                    match key.code {
+                        KeyCode::Char('q') | KeyCode::Char('Q') | KeyCode::Esc => {
+                            cleanup_and_exit();
+                        }
+                        KeyCode::Char('c') if key.modifiers.contains(crossterm::event::KeyModifiers::CONTROL) => {
+                            cleanup_and_exit();
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+    });
 
     let mut frames: Vec<Frame> = Vec::new();
     let mut last_frame_content: Option<&'static str> = None;
