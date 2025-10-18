@@ -137,10 +137,23 @@ cd homebrew-tap
 SOURCE_SHA256=$(curl -sL "https://github.com/notjosh/horse/archive/refs/tags/${TAG}.tar.gz" | shasum -a 256 | cut -d' ' -f1)
 
 # Generate bottle block lines from stored data
+# First pass: find the maximum arch_os length for alignment
+MAX_ARCH_OS_LENGTH=0
+while IFS='|' read -r arch_os sha256; do
+    if [ ${#arch_os} -gt $MAX_ARCH_OS_LENGTH ]; then
+        MAX_ARCH_OS_LENGTH=${#arch_os}
+    fi
+done < "${TEMP_DIR}/bottle_data.txt"
+
+# Second pass: generate aligned bottle lines
 BOTTLE_LINES=""
 while IFS='|' read -r arch_os sha256; do
+    # Calculate padding needed
+    PADDING=$((MAX_ARCH_OS_LENGTH - ${#arch_os}))
+    SPACES=$(printf '%*s' $PADDING '')
+    
     # Format: sha256 cellar: :any_skip_relocation, arm64_sonoma: "sha256here"
-    BOTTLE_LINES="${BOTTLE_LINES}    sha256 cellar: :any_skip_relocation, ${arch_os}: \"${sha256}\"\n"
+    BOTTLE_LINES="${BOTTLE_LINES}    sha256 cellar: :any_skip_relocation, ${arch_os}:${SPACES} \"${sha256}\"\n"
 done < "${TEMP_DIR}/bottle_data.txt"
 
 # Create the formula with dynamically generated bottle blocks
@@ -164,7 +177,7 @@ $(echo -e "${BOTTLE_LINES}")
   end
 
   test do
-    assert_predicate bin/"horse", :exist?
+    assert_path_exists bin/"horse"
   end
 end
 EOF
