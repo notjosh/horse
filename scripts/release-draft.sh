@@ -45,6 +45,17 @@ TAG="v${VERSION}"
 info "📦 Preparing to create draft release: ${GREEN}${TAG}${NC}"
 echo
 
+# Check if Cargo.lock is up to date
+info "🔍 Verifying Cargo.lock is up to date..."
+if ! cargo check --locked --quiet 2>&1 >/dev/null; then
+    error "Cargo.lock is out of sync with Cargo.toml"
+    info "Run 'cargo build' or 'cargo update' to update Cargo.lock"
+    exit 1
+fi
+
+success "✓ Cargo.lock is up to date"
+echo
+
 # Check if working directory is clean
 if [ -n "$(git status --porcelain)" ]; then
     error "Working directory is not clean. Please commit or stash your changes first."
